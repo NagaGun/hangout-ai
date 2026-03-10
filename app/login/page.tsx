@@ -13,6 +13,10 @@ export default function LoginPage() {
     const supabase = createClient()
     const router = useRouter()
 
+    // Check for invite token in URL
+    const searchParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null
+    const inviteToken = searchParams?.get('invite')
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         setIsLoading(true)
@@ -25,21 +29,28 @@ export default function LoginPage() {
                     password,
                 })
                 if (error) throw error
-                router.push('/')
+
+                // If we have an invite token, redirect to the join page
+                if (inviteToken) {
+                    router.push(`/join/${inviteToken}`)
+                } else {
+                    router.push('/')
+                }
                 router.refresh()
             } else {
                 const { error } = await supabase.auth.signUp({
                     email,
                     password,
                     options: {
-                        emailRedirectTo: `${window.location.origin}/auth/callback`,
+                        emailRedirectTo: `${window.location.origin}/auth/callback${inviteToken ? `?invite=${inviteToken}` : ''}`,
                     },
                 })
                 if (error) throw error
                 alert('Check your email for the confirmation link (if enabled in Supabase)!')
             }
-        } catch (err: any) {
-            setError(err.message || 'An error occurred')
+        } catch (err) {
+            const error = err as Error
+            setError(error.message || 'An error occurred')
         } finally {
             setIsLoading(false)
         }
