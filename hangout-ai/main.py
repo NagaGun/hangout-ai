@@ -1,8 +1,12 @@
 import os
+from dotenv import load_dotenv
 from fastapi import FastAPI, Request, HTTPException, status
 from pydantic import BaseModel
 from typing import Optional, List
 import httpx
+
+# Load .env file so real credentials override the fallback mock values
+load_dotenv()
 
 app = FastAPI(
     title="LoopSync_Core_Engine",
